@@ -1,6 +1,25 @@
 /* This file is for your main application css. */
-
 @import "bootstrap";
 
-.side { padding: 4ex; text-align: center; }
-h1 { text-align: center; }
+//.side {
+//  padding: 4ex;
+//  text-align: center;
+//}
+
+h1 {
+  text-align: center;
+}
+
+td {
+  text-align: center;
+}
+
+.container {
+  border-style: dashed;
+  border-color: blue;
+}
+
+.col {
+  text-align: center;
+  /* overflow: auto; */
+}
