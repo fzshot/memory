@@ -48,9 +48,7 @@ function ReturnSingleRow(props){
     let letter = props.letter;
     function Tile() {
         return (
-            <div className="letterBox">
-                <h1 className="gameLetter">{letter}</h1>
-            </div>
+            <Button type="button" className="btn btn-dark">{letter}</Button>
         );
     }
     return (
