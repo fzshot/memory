@@ -15,6 +15,10 @@ class Memory extends React.Component {
         let pair = [];
         pair.push(randomLetter_1, randomLetter_2);
         pair = _.flatten(pair);
+        let tempDisplay = [];
+        for (let i = 0; i < 16; i++) {
+            tempDisplay.push("");
+        }
         let tempList = [];
         for (let i = 0; i < 16; i++) {
             tempList.push(0)
@@ -22,7 +26,7 @@ class Memory extends React.Component {
         this.state = {
             letterBase: base,
             letterPair: pair,
-            tileList: tempList,
+            displayLetter: tempDisplay,
             disabled: tempList,
             clicks: 0,
             allow: 1,
@@ -35,14 +39,12 @@ class Memory extends React.Component {
     tileClick(number) {
         if (!$("#b"+number).prop("disabled") && ($.inArray(number, this.tiles) == -1)
         && (!$("#b"+number).hasClass("notallow"))) {
-            let tilelist = this.state.tileList.slice();
-            tilelist[number] = 1;
-            /* $("#"+number).css("visibility", "visible");*/
+            let newDisplayLetter = this.state.displayLetter.slice();
             this.tiles.push(number);
-            let letter = $("#"+number).text();
+            newDisplayLetter[number] = this.state.letterPair[number];
             let newClicks = this.state.clicks + 1;
-            this.setState({clicks: newClicks, tileList: tilelist});
-            this.clickHelper(letter);
+            this.setState({displayLetter: newDisplayLetter, clicks: newClicks});
+            this.clickHelper(this.state.letterPair[number]);
         }
     }
 
@@ -51,27 +53,26 @@ class Memory extends React.Component {
             this.click = letter;
         }
         else {
+            let newDisplayLetter = this.state.displayLetter.slice();
             if (letter == this.click) {
-                let tilelist = this.state.tileList.slice();
                 let tiledisable = this.state.disabled.slice();
-                tilelist[this.tiles[0]] = 1;
-                tilelist[this.tiles[1]] = 1;
+                newDisplayLetter[this.tiles[0]] = this.state.letterPair[this.tiles[0]];
+                newDisplayLetter[this.tiles[1]] = this.state.letterPair[this.tiles[1]];
                 tiledisable[this.tiles[0]] = 1;
                 tiledisable[this.tiles[1]] = 1;
                 this.click = "";
                 this.tiles = [];
-                this.setState({check: 1, tileList: tilelist, disabled: tiledisable});
+                this.setState({displayLetter: newDisplayLetter, check: 1, disabled: tiledisable});
             }
             else {
-                let tilelist = this.state.tileList.slice();
-                tilelist[this.tiles[0]] = 1;
-                tilelist[this.tiles[1]] = 1;
-                this.setState({check: -1, tileList: tilelist, allow: 0});
+                newDisplayLetter[this.tiles[0]] = this.state.letterPair[this.tiles[0]];
+                newDisplayLetter[this.tiles[1]] = this.state.letterPair[this.tiles[1]];
+                this.setState({check: -1, displayLetter: newDisplayLetter, allow: 0});
                 this.click = "";
                 setTimeout(() => {
-                    tilelist[this.tiles[0]] = 0;
-                    tilelist[this.tiles[1]] = 0;
-                    this.setState({tileList: tilelist, allow: 1});
+                    newDisplayLetter[this.tiles[0]] = "";
+                    newDisplayLetter[this.tiles[1]] = "";
+                    this.setState({displayLetter: newDisplayLetter, allow: 1});
                     this.tiles = [];
                 }, 1000);
             }
@@ -87,17 +88,17 @@ class Memory extends React.Component {
                         <ResultHelper result={this.state.check} />
                     </div>
                 </div>
-                <ReturnSingleRow letter={this.state.letterPair} currentLetter={0}
-                click={this.tileClick.bind(this)} tilelist={this.state.tileList}
+                <ReturnSingleRow letter={this.state.displayLetter} currentLetter={0}
+                click={this.tileClick.bind(this)}
                 disable={this.state.disabled} allow={this.state.allow} />
-                <ReturnSingleRow letter={this.state.letterPair} currentLetter={4}
-                click={this.tileClick.bind(this)} tilelist={this.state.tileList}
+                <ReturnSingleRow letter={this.state.displayLetter} currentLetter={4}
+                click={this.tileClick.bind(this)}
                 disable={this.state.disabled} allow={this.state.allow} />
-                <ReturnSingleRow letter={this.state.letterPair} currentLetter={8}
-                click={this.tileClick.bind(this)} tilelist={this.state.tileList}
+                <ReturnSingleRow letter={this.state.displayLetter} currentLetter={8}
+                click={this.tileClick.bind(this)}
                 disable={this.state.disabled} allow={this.state.allow} />
-                <ReturnSingleRow letter={this.state.letterPair} currentLetter={12}
-                click={this.tileClick.bind(this)} tilelist={this.state.tileList}
+                <ReturnSingleRow letter={this.state.displayLetter} currentLetter={12}
+                click={this.tileClick.bind(this)}
                 disable={this.state.disabled} allow={this.state.allow} />
                 <div className="row justify-content-center last-row">
                     <Clicks clicks={this.state.clicks} />
@@ -138,21 +139,16 @@ function RenderHelper(props) {
         let letter = props.letter;
         let number = props.number;
         let buttonid = "b"+number;
-        let tileShow = props.tilelist[number];
-        let noshow = {visibility: "display"};
         let disable = false;
         let clickallow = props.allow;
         if (props.disable[number] == 1) {
             disable = true;
         }
-        if (tileShow == 0) {
-            _.extend(noshow, {visibility: "hidden"});
-        }
         return (
             <Button disabled={disable} type="button" id={buttonid}
                     className={clickallow ? "btn btn-dark" : "btn btn-dark notallow"} onClick={() =>
                         props.click(number) }>
-                <span className="tile" id={number} style={noshow}>{letter}</span>
+                <span className="tile" id={number}>{letter}</span>
             </Button>
         );
     }
@@ -160,7 +156,7 @@ function RenderHelper(props) {
     let currentLetter = props.currentLetter;
     let tilesArray = []
     for (let j = 0; j < 4; j++, currentLetter++) {
-        tilesArray.push(<Tile letter={letter[currentLetter]} click={props.click} number={currentLetter} tilelist={props.tilelist} disable={props.disable} allow={props.allow} />);
+        tilesArray.push(<Tile letter={letter[currentLetter]} click={props.click} number={currentLetter} disable={props.disable} allow={props.allow} />);
     }
     return tilesArray;
 
