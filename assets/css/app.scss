@@ -14,17 +14,36 @@ td {
   text-align: center;
 }
 
-.container {
-  border-style: dashed;
-  border-color: blue;
-}
-
 .col {
   text-align: center;
-  /* overflow: auto; */
+  width: 1px;
 }
+
+.row {
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
 .btn-dark {
-    font-size: 5rem;
-    width: 9rem;
-    height: 9rem;
+    font-size: 2rem;
+    width: 5rem;
+    height: 5rem;
+}
+
+.last-row {
+    margin-top: 3rem;
+}
+
+.clicks {
+    text-align: left;
+    width: 10rem;
+}
+
+.col-clicks {
+    margin-right: 5rem;
+}
+
+.col-reset {
+    margin-left: 5rem;
+    margin-top: .4rem;
 }
