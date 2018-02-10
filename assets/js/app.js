@@ -24,18 +24,15 @@ import run_memory from "./memory";
 import socket from "./socket";
 
 function init() {
-    let root = document.getElementById('game');
+    let root = document.getElementById("game");
     if (root) {
         let channel = socket.channel("games:" + window.gameName, {});
-        channel.join()
-            .receive("ok", resp => { console.log("Joined successfully", resp); })
-            .receive("error", resp => { console.log("Unable to join", resp); });
-        run_memory(root);
-    }
-
-    let index = document.getElementById("index");
-    if (index) {
-        run_memory(index);
+        run_memory(root, channel);
+    } else {
+        let index = document.getElementById("index");
+        if (index) {
+            run_memory(index);
+        }
     }
 }
 

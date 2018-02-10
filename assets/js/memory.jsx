@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {Button} from 'reactstrap';
 
-export default function run_memory(root) {
+export default function run_memory(root, channel) {
     ReactDOM.render(<Memory channel={channel}/> , root);
 }
 
@@ -15,12 +15,6 @@ class Memory extends React.Component {
             .receive("ok", this.gotView.bind(this))
             .receive("error", resp => {console.log("Unable to join", resp)});
 
-        let base = ["A", "B", "C", "D", "E", "F", "G", "H"];
-        let randomLetter_1 = _.shuffle(base);
-        let randomLetter_2 = _.shuffle(base);
-        let pair = [];
-        pair.push(randomLetter_1, randomLetter_2);
-        pair = _.flatten(pair);
         let tempDisplay = [];
         for (let i = 0; i < 16; i++) {
             tempDisplay.push("");
@@ -30,8 +24,6 @@ class Memory extends React.Component {
             tempList.push(0)
         }
         this.state = {
-            letterBase: base,
-            letterPair: pair,
             displayLetter: tempDisplay,
             disabled: tempList,
             clicks: 0,
@@ -40,56 +32,53 @@ class Memory extends React.Component {
         };
         this.click = "";
         this.tiles = [];
+        this.one = -1;
     }
 
     gotView(view) {
-        console.log("New View", view)
+        console.log("New View", view);
         this.setState(view.game);
     }
 
+    hideView(view) {
+        console.log("hide view", view);
+        this.setState(view.hide);
+    }
+
     tileClick(number) {
-        if (!$("#b"+number).prop("disabled") && ($.inArray(number, this.tiles) == -1)
+        if (!$("#b"+number).prop("disabled") && ($("#"+number).text() == "")
         && (!$("#b"+number).hasClass("notallow"))) {
-            let newDisplayLetter = this.state.displayLetter.slice();
-            this.tiles.push(number);
-            newDisplayLetter[number] = this.state.letterPair[number];
-            let newClicks = this.state.clicks + 1;
-            this.setState({displayLetter: newDisplayLetter, clicks: newClicks});
-            this.clickHelper(this.state.letterPair[number]);
-        }
-    }
+            if (this.one == -1) {
+                console.log("-1");
+                this.one = number;
+                this.channel.push("click", {displayLetter: this.state.displayLetter, clicks: this.state.clicks, tile: number, comp: 0})
+                    .receive("ok", this.gotView.bind(this));
+            } else {
+                console.log("else")
+                this.channel.push("click", {displayLetter: this.state.displayLetter, clicks: this.state.clicks, comp: 1, one: this.one, two: number})
+                       .receive("ok", (resp) => {
+                           this.gotView(resp);
+                           let newDisabled = this.state.disabled.slice();
+                           console.log(this.one);
+                           newDisabled[this.one] = 1;
+                           newDisabled[number] = 1;
+                           this.setState({disabled: newDisabled, check: 1});
+                           this.one = -1;
+                       })
+                       .receive("notok", (resp) => {
+                           this.setState({allow: 0});
+                           this.gotView(resp);
+                           this.setState({check: -1})
+                           setTimeout(() => {
+                               this.hideView(resp)
+                               this.setState({allow: 1 })
+                           }, 1000);
+                           this.one = -1;
+                       });
 
-    clickHelper(letter) {
-        if (this.click == "") {
-            this.click = letter;
-        }
-        else {
-            let newDisplayLetter = this.state.displayLetter.slice();
-            if (letter == this.click) {
-                let tiledisable = this.state.disabled.slice();
-                newDisplayLetter[this.tiles[0]] = this.state.letterPair[this.tiles[0]];
-                newDisplayLetter[this.tiles[1]] = this.state.letterPair[this.tiles[1]];
-                tiledisable[this.tiles[0]] = 1;
-                tiledisable[this.tiles[1]] = 1;
-                this.click = "";
-                this.tiles = [];
-                this.setState({displayLetter: newDisplayLetter, check: 1, disabled: tiledisable});
-            }
-            else {
-                newDisplayLetter[this.tiles[0]] = this.state.letterPair[this.tiles[0]];
-                newDisplayLetter[this.tiles[1]] = this.state.letterPair[this.tiles[1]];
-                this.setState({check: -1, displayLetter: newDisplayLetter, allow: 0});
-                this.click = "";
-                setTimeout(() => {
-                    newDisplayLetter[this.tiles[0]] = "";
-                    newDisplayLetter[this.tiles[1]] = "";
-                    this.setState({displayLetter: newDisplayLetter, allow: 1});
-                    this.tiles = [];
-                }, 1000);
             }
         }
     }
-
 
     render() {
         return (
@@ -113,7 +102,7 @@ class Memory extends React.Component {
                 disable={this.state.disabled} allow={this.state.allow} />
                 <div className="row justify-content-center last-row">
                     <Clicks clicks={this.state.clicks} />
-                    <Reset />
+                    <Reset channel={this.channel} gotview={this.gotView.bind(this)}/>
                 </div>
             </div>
         );
@@ -195,11 +184,15 @@ function ReturnSingleRow(props){
 
 }
 
-function Reset(){
+function Reset(props){
+    let channel = props.channel;
     return (
         <div className="col-auto col-reset">
             <Button type="button" className="btn btn-danger reset-button"
-            onClick={() => location.reload() }>
+                    onClick={() => {
+                            channel.push("reset", {})
+                                   .receive("ok", props.gotview.bind(this));
+                    }}>
                 Reset Game
             </Button>
         </div>
