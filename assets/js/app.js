@@ -20,14 +20,29 @@ import "phoenix_html";
 
 // import socket from "./socket"
 
-// import run_demo from "./demo";
 import run_memory from "./memory";
+import socket from "./socket";
 
 function init() {
     let root = document.getElementById('game');
-    run_memory(root);
-    // run_demo(root);
+    if (root) {
+        let channel = socket.channel("games:" + window.gameName, {});
+        channel.join()
+            .receive("ok", resp => { console.log("Joined successfully", resp); })
+            .receive("error", resp => { console.log("Unable to join", resp); });
+        run_memory(root);
+    }
+
+    let index = document.getElementById("index");
+    if (index) {
+        run_memory(index);
+    }
 }
+
+// function init() {
+//     let root = document.getElementById('game');
+//     run_memory(root);
+// }
 
 // Use jQuery to delay until page loaded.
 $(init);

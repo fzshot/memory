@@ -3,12 +3,18 @@ import ReactDOM from 'react-dom';
 import {Button} from 'reactstrap';
 
 export default function run_memory(root) {
-    ReactDOM.render(<Memory/>, root);
+    ReactDOM.render(<Memory channel={channel}/> , root);
 }
 
 class Memory extends React.Component {
     constructor(props) {
         super(props);
+
+        this.channel = props.channel;
+        this.channel.join()
+            .receive("ok", this.gotView.bind(this))
+            .receive("error", resp => {console.log("Unable to join", resp)});
+
         let base = ["A", "B", "C", "D", "E", "F", "G", "H"];
         let randomLetter_1 = _.shuffle(base);
         let randomLetter_2 = _.shuffle(base);
@@ -34,6 +40,11 @@ class Memory extends React.Component {
         };
         this.click = "";
         this.tiles = [];
+    }
+
+    gotView(view) {
+        console.log("New View", view)
+        this.setState(view.game);
     }
 
     tileClick(number) {
