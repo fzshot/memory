@@ -20,6 +20,7 @@ import "phoenix_html";
 
 
 import run_memory from "./memory";
+import run_index from "./index"
 import socket from "./socket";
 
 function init() {
@@ -30,7 +31,7 @@ function init() {
     } else {
         let index = document.getElementById("index");
         if (index) {
-            run_memory(index);
+            run_index(index);
         }
     }
 }

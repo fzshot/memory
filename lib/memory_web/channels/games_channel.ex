@@ -6,7 +6,6 @@ defmodule MemoryWeb.GamesChannel do
   def join("games:" <> name, payload, socket) do
     if authorized?(payload) do
       initState = Memory.GameBackup.load(name)
-      IO.inspect(initState)
       if initState do
         game = initState["game"]
         state = initState["state"]
@@ -49,9 +48,12 @@ defmodule MemoryWeb.GamesChannel do
         |> Game.display_one(disabled, displayLetter, two, clicks)
         |> Game.compare(socket.assigns[:game], displayLetter, disabled, one, two)
         if Map.has_key?(comp, :hide) do
+          hide = comp[:hide]
+          |> Map.put(:disabled, disabled)
+          |> Map.put(:clicks, comp[:game][:clicks])
           stateSave = %{
             "game" => socket.assigns[:game],
-            "state" => comp[:hide]
+            "state" => hide
                         }
           Memory.GameBackup.save(stateSave, name)
           {:reply, {:notok, %{"game" => comp[:game], "hide" => comp[:hide]}}, socket}

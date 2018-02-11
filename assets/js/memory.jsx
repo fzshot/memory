@@ -16,15 +16,13 @@ class Memory extends React.Component {
             .receive("error", resp => {console.log("Unable to join", resp)});
 
         this.state = {
-            displayLetter: [],
-            disabled: [],
+            displayLetter: Array(16).fill(""),
+            disabled: Array(16).fill(0),
             clicks: 0,
             allow: 1,
             check: 0,
             one: -1
         };
-        this.click = "";
-        this.tiles = [];
     }
 
     gotView(view) {
@@ -39,11 +37,9 @@ class Memory extends React.Component {
         if (!$("#b"+number).prop("disabled") && ($("#"+number).text() == "")
         && (!$("#b"+number).hasClass("notallow"))) {
             if (this.state.one == -1) {
-                console.log("-1");
                 this.channel.push("click", {disabled: this.state.disabled, displayLetter: this.state.displayLetter, clicks: this.state.clicks, tile: number, comp: 0})
                     .receive("ok", this.gotView.bind(this));
             } else {
-                console.log("else")
                 this.channel.push("click", {disabled: this.state.disabled, displayLetter: this.state.displayLetter, clicks: this.state.clicks, comp: 1, one: this.state.one, two: number})
                        .receive("ok", (resp) => {
                            this.gotView(resp);
