@@ -15,55 +15,39 @@ class Memory extends React.Component {
             .receive("ok", this.gotView.bind(this))
             .receive("error", resp => {console.log("Unable to join", resp)});
 
-        let tempDisplay = [];
-        for (let i = 0; i < 16; i++) {
-            tempDisplay.push("");
-        }
-        let tempList = [];
-        for (let i = 0; i < 16; i++) {
-            tempList.push(0)
-        }
         this.state = {
-            displayLetter: tempDisplay,
-            disabled: tempList,
+            displayLetter: [],
+            disabled: [],
             clicks: 0,
             allow: 1,
             check: 0,
+            one: -1
         };
         this.click = "";
         this.tiles = [];
-        this.one = -1;
     }
 
     gotView(view) {
-        console.log("New View", view);
         this.setState(view.game);
     }
 
     hideView(view) {
-        console.log("hide view", view);
         this.setState(view.hide);
     }
 
     tileClick(number) {
         if (!$("#b"+number).prop("disabled") && ($("#"+number).text() == "")
         && (!$("#b"+number).hasClass("notallow"))) {
-            if (this.one == -1) {
+            if (this.state.one == -1) {
                 console.log("-1");
-                this.one = number;
-                this.channel.push("click", {displayLetter: this.state.displayLetter, clicks: this.state.clicks, tile: number, comp: 0})
+                this.channel.push("click", {disabled: this.state.disabled, displayLetter: this.state.displayLetter, clicks: this.state.clicks, tile: number, comp: 0})
                     .receive("ok", this.gotView.bind(this));
             } else {
                 console.log("else")
-                this.channel.push("click", {displayLetter: this.state.displayLetter, clicks: this.state.clicks, comp: 1, one: this.one, two: number})
+                this.channel.push("click", {disabled: this.state.disabled, displayLetter: this.state.displayLetter, clicks: this.state.clicks, comp: 1, one: this.state.one, two: number})
                        .receive("ok", (resp) => {
                            this.gotView(resp);
-                           let newDisabled = this.state.disabled.slice();
-                           console.log(this.one);
-                           newDisabled[this.one] = 1;
-                           newDisabled[number] = 1;
-                           this.setState({disabled: newDisabled, check: 1});
-                           this.one = -1;
+                           this.setState({check: 1});
                        })
                        .receive("notok", (resp) => {
                            this.setState({allow: 0});
@@ -73,7 +57,6 @@ class Memory extends React.Component {
                                this.hideView(resp)
                                this.setState({allow: 1 })
                            }, 1000);
-                           this.one = -1;
                        });
 
             }

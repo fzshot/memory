@@ -18,7 +18,6 @@ import "phoenix_html";
 // Local files can be imported directly using relative
 // paths "./socket" or full ones "web/static/js/socket".
 
-// import socket from "./socket"
 
 import run_memory from "./memory";
 import socket from "./socket";
@@ -35,11 +34,6 @@ function init() {
         }
     }
 }
-
-// function init() {
-//     let root = document.getElementById('game');
-//     run_memory(root);
-// }
 
 // Use jQuery to delay until page loaded.
 $(init);
